@@ -1,0 +1,231 @@
+{% extends "base.html"%}
+
+{% block content%}
+        
+        <div class="fixed-action-btn">
+            <a class="btn-floating btn-large red" href='/clear'>
+              <i class="large material-icons">clear_all</i>
+            </a>
+        </div>
+      
+        <div class="container">
+            <!-- Page Content goes here -->
+            <div class="row">
+                <div class="col s12 m12 l12">
+                    <div class="section center">
+                        <p class="caption"> 我是一个辅助工具，帮助发送考勤邮件给老板 </p>
+                        <h2 class="header"> X实验室 </h2>
+                        <div class="row">
+                              <form action="/change_zhuguan" method="post">
+                                <div class="row">
+                                    <div class="input-field col s4 offset-s3">
+                                        <i class="material-icons prefix">account_circle</i>
+                                        <input value="{{ zhuguan }}" id="zhuguan" name="zhuguan" type="text" class="validate center">
+                                        <label class="active" for="zhuguan">现任主管</label>
+                                     </div>
+                                      <div class="input-field col s2">    
+                                        <button class="btn waves-effect" type="submit" name="action"><i class="material-icons left">edit</i>修改</button>
+                                      
+                                      </div> 
+                                </div>
+                              </form>
+                              
+                              <div class="col s12">
+                                  <form action="/" method="post">
+                                  <ul class="collapsible" data-collapsible="expandable">
+                                    {% for info in infos %}
+                                    <li>
+                                      <div class="collapsible-header active">
+                                        <i class="material-icons"> {{ info.icon }} </i>
+                                        {{ info.header }}
+                                        <span class="new badge {{ info.badge_color }}" data-badge-caption="x">{{ info.names | length }}</span></div>
+                                      <div class="collapsible-body">
+                                        <div class="container">
+                                            <div class="row">
+                                            {% for name in info.names %}
+                                                <div class="col s6 m4 l3">
+                                                    <p>
+                                                      <input type="checkbox" id="{{name}}" 
+                                                      {% if not status.get(name) %} checked="checked" {% endif %}
+                                                      name="at_lab" value="{{name}}"/>
+                                                      <label for="{{name}}">{{name}}</label>
+                                                    </p>
+                                                    
+                                                    <!-- Dropdown Trigger -->
+                                                    {% if status.get(name) %}
+                                                    <a id='button{{name}}' class='dropdown-button btn blue' href='#' data-activates='dropdown{{name}}'>{{ status[name] }}</a>
+                                                    {% else %}
+                                                    <a id='button{{name}}' style="display: none;" class='dropdown-button btn blue' href='#' data-activates='dropdown{{name}}'>原因</a>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Dropdown Structure -->
+                                                    <ul id='dropdown{{name}}' class='dropdown-content'>
+                                                      {% for r in reasons %}
+                                                      <li><a href="#!" name="{{name}}">{{ r }}</a></li>
+                                                      {% endfor %}
+                                                      <li class="divider"></li>
+                                                      <!-- Modal Trigger -->
+                                                      <li><a name="{{name}}" class="modal-trigger" href="#modal1">其它</a></li>
+                                                    </ul>
+                                                </div>
+                                            {% endfor %}
+                                            </div>
+                                        </div>
+                                      </div>
+                                    </li>
+                                    {% endfor %}
+                                  </ul>
+                                  
+                                   <!-- 一次提交多个表单可参考下方链接, 这里只为一个表单提交-->
+                                   <!-- https://stackoverflow.com/questions/7843355/submit-two-forms-with-one-button -->
+                                   
+                                   <button class="btn waves-effect waves-light" type="submit" name="action">发送邮件
+                                       <i class="material-icons right">send</i>
+                                   </button>
+                                   
+                                  </form>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Structure -->
+        <div id="modal1" class="modal bottom-sheet">
+            <div class="modal-content center">
+                <h4>其它原因书写</h4>
+                <div class="row">
+                <div class="input-field col s12 m6 offset-m3">
+                    <i class="material-icons prefix">mode_edit</i>
+                    <textarea id="other_reason_t" class="materialize-textarea"></textarea>
+                    <label for="other_reason_t">原因</label>
+                </div>
+                </div>
+                <a id="other_reason_a" href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+            </div>
+        </div>
+{% endblock %}
+        
+   
+{% block websocket_script%}
+<!-- socket script, is there any better way to place these codes? -->
+<script type="text/javascript">
+    // Create WebSocket connection.
+    const socket = new WebSocket(
+        'ws://' + location.host + '/notify');
+
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+        socket.send('Hello Server!');
+    });
+
+    // Listen for messages
+    // debug : https://stackoverflow.com/questions/42368773/cannot-read-property-style-of-undefined-uncaught-type-error
+    // 不能放在head标签里
+    socket.addEventListener('message', function (event) {
+        data = JSON.parse(event.data);
+        if(data.clear){ //刷新页面
+            window.location.reload();
+        }
+        console.log(data)
+        // get the button element
+        // el = document.getElementsByClassName(data.name)[0];
+        // getElementById 不易产生找不到元素的bug
+        el = document.getElementById('button' + data.name);
+        re = data.reason;
+        
+        if(re != '到达'){
+            document.getElementById(data.name).checked = false; // 取消勾选
+            el.style.display = 'inline-block'; // 显示原因按钮
+            el.text = re;
+        }else{
+            document.getElementById(data.name).checked = true; // 勾选
+            el.style.display = 'none';
+        };
+        console.log('Message from server ', data);
+    });
+    
+    socket.addEventListener('close', function (event) {
+        alert('连接中断! 请刷新页面~');
+    });
+</script>
+{% endblock %}
+
+{% block custom_script%}
+<script>
+    // var x;
+    
+    $(document).ready(function(){
+    
+        var flagname = '';
+        
+        var _submit = function(name, text){
+            $.ajax({
+                url: '/report/' + name + '?reason=' + text,
+                type: 'POST',
+                success: function (result) {
+                    console.log(result)
+                    if (result.success == false) {
+                        alert('发生错误!');
+                    }
+                    else {
+                        Materialize.toast('成功提交!', 1000);
+                    }
+                },
+                //async: false,
+            });
+        };
+        
+        var submit_other = function(){
+            var text = $("#other_reason_t").val()
+            _submit(flagname, text)
+            $("#other_reason_t").val('')
+        };
+        
+        $('.modal').modal({
+            dismissible: true, // Modal can be dismissed by clicking outside of the modal
+            complete : submit_other, // Callback for Modal close
+        }); // 初始化modal
+    
+        $("input:checkbox").click(function(e){
+            var checkbox = e.target;
+            // $(checkbox.parentElement.nextElementSibling).slideToggle();
+            // checkbox点击切换显示相应的原因按钮 // 弃用
+            
+            var name = checkbox.value;
+            
+            $("#button"+name).slideToggle();
+            // checkbox点击切换显示相应的原因按钮
+            
+            if(checkbox.checked){
+                _submit(name, '到达');
+            }else{
+                _submit(name, '原因');
+            };
+        }); 
+        
+        $(".dropdown-content").click(function(e){
+            // console.log(e);
+            // x = e;
+            var text = e.target.text
+            var name = e.target.name
+            // var dropdown_button = e.target.parentElement.parentElement.previousElementSibling
+            var dropdown_button = $("#button"+name)[0]
+            dropdown_button.text = text
+            
+            if (text != '其它'){
+                _submit(name, text)
+            } else {
+                flagname = name
+            }
+        });
+        
+        //$("#other_reason_a").click(function(e){
+        //    submit_other()
+        //}); // 只监测关闭状态,不考虑按钮点击
+        
+    });
+</script>
+{% endblock %}

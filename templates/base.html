@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--仿 http://materializecss.com/cards.html -->
+    
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.lug.ustc.edu.cn/icon?family=Material+Icons" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" media="screen,projection" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    
+    <title> 考勤助手 </title> 
+    
+    {% block custom_style %}
+    <!-- 请填充该页自定义样式 -->
+    {% endblock %}
+    
+  </head>
+  
+  <body>
+    <!-- 网站头部 -->
+    <header>
+        <nav class="top-nav">
+            <div class="container">
+              <div class="nav-wrapper">
+                <a href="" class="brand-logo center">考勤助手</a>
+                <ul id="nav-mobile" class="left hide-on-med-and-down">
+                  <li><a href="">treelake</a></li>
+                </ul>
+              </div>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- 网页主体内容 -->
+    <main>
+    {% block content%}
+    <!-- 请填充该页主要内容 -->
+    {% endblock %}
+    </main>
+    
+    {% block websocket_script%}
+    <!-- 请填充websocket内容，不使用jquery -->
+    {% endblock %}
+    
+    <!--Import jQuery before materialize.js-->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+
+    {% block custom_script%}
+    <!-- 请填充该页自定义脚本 -->
+    {% endblock %}
+    
+  </body>
+</html>
